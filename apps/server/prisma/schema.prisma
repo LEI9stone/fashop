@@ -1,0 +1,180 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── 买家用户 ───────────────────────────────────────────────────────────────
+
+model User {
+  id        String     @id @default(cuid())
+  phone     String     @unique
+  nickname  String     @default("用户")
+  avatar    String?
+  oauths    UserOAuth[]
+  orders    Order[]
+  addresses Address[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@map("users")
+}
+
+model UserOAuth {
+  id       String @id @default(cuid())
+  userId   String
+  platform String // 'weapp' | 'tt'
+  openid   String
+  unionid  String?
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([platform, openid])
+  @@map("user_oauths")
+}
+
+// ─── 商家 ────────────────────────────────────────────────────────────────────
+
+model Seller {
+  id          String    @id @default(cuid())
+  phone       String    @unique
+  password    String
+  shopName    String
+  logo        String?
+  description String?
+  products    Product[]
+  orders      Order[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("sellers")
+}
+
+// ─── 商品 ────────────────────────────────────────────────────────────────────
+
+model Product {
+  id        String        @id @default(cuid())
+  sellerId  String
+  name      String
+  cover     String
+  images    Json          // string[]
+  detail    String        @db.Text
+  status    ProductStatus @default(ON_SALE)
+  skus      Sku[]
+  seller    Seller        @relation(fields: [sellerId], references: [id])
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@map("products")
+}
+
+model Sku {
+  id         String      @id @default(cuid())
+  productId  String
+  specs      Json        // Record<string, string>  { "颜色": "红色" }
+  price      Int         // 单位：分
+  stock      Int         @default(0)
+  product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  orderItems OrderItem[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@map("skus")
+}
+
+// ─── 订单 ────────────────────────────────────────────────────────────────────
+
+model Order {
+  id               String      @id @default(cuid())
+  userId           String
+  sellerId         String
+  status           OrderStatus @default(PENDING_PAY)
+  items            OrderItem[]
+  address          Json        // 快照收货地址
+  totalAmount      Int         // 单位：分
+  remark           String?
+  payAt            DateTime?
+  shipAt           DateTime?
+  trackingNo       String?
+  trackingCompany  String?
+  user             User        @relation(fields: [userId], references: [id])
+  seller           Seller      @relation(fields: [sellerId], references: [id])
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  skuId     String
+  name      String  // 快照商品名
+  cover     String  // 快照商品图
+  specs     Json    // 快照规格
+  price     Int     // 快照价格，单位：分
+  quantity  Int
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  sku       Sku     @relation(fields: [skuId], references: [id])
+
+  @@map("order_items")
+}
+
+// ─── 收货地址 ─────────────────────────────────────────────────────────────────
+
+model Address {
+  id        String  @id @default(cuid())
+  userId    String
+  name      String
+  phone     String
+  province  String
+  city      String
+  district  String
+  detail    String
+  isDefault Boolean @default(false)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("addresses")
+}
+
+// ─── 优惠券 ───────────────────────────────────────────────────────────────────
+
+model Coupon {
+  id          String     @id @default(cuid())
+  sellerId    String
+  name        String
+  type        CouponType
+  value       Int        // 满减金额（分）或折扣（如 80 = 8折）
+  minAmount   Int        @default(0) // 最低消费金额（分），0 表示无门槛
+  total       Int        // 发行总量
+  used        Int        @default(0)
+  startAt     DateTime
+  expireAt    DateTime
+  createdAt   DateTime   @default(now())
+
+  @@map("coupons")
+}
+
+// ─── 枚举 ─────────────────────────────────────────────────────────────────────
+
+enum ProductStatus {
+  ON_SALE
+  OFF_SALE
+}
+
+enum OrderStatus {
+  PENDING_PAY
+  PENDING_SHIP
+  SHIPPED
+  DONE
+  CANCELLED
+  REFUNDING
+  REFUNDED
+}
+
+enum CouponType {
+  FIXED      // 满减
+  PERCENT    // 折扣
+}
