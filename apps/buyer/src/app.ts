@@ -1,13 +1,17 @@
 import { PropsWithChildren } from 'react'
 import { useLaunch } from '@tarojs/taro'
+
 import './app.scss'
 
-function App({ children }: PropsWithChildren) {
+function App({ children }: PropsWithChildren<any>) {
   useLaunch(() => {
-    console.log('FaShop buyer launched')
+    console.log('App launched.')
   })
 
-  return <>{children}</>
+  // children 是将要会渲染的页面
+  return children
 }
+  
+
 
 export default App
