@@ -1,40 +1,52 @@
 services:
+  # ─────────────────────────────────────────
+  # MySQL 数据库服务
+  # ─────────────────────────────────────────
   mysql:
-    image: mysql:8.0
-    container_name: fashop-mysql
-    restart: unless-stopped
+    image: mysql:8.0                  # 使用官方 MySQL 8.0 镜像
+    container_name: fashop-mysql      # 容器名称，方便通过名称操作容器
+    restart: unless-stopped           # 异常退出或宿主机重启后自动重启，手动 stop 则不重启
     environment:
-      MYSQL_ROOT_PASSWORD: fashop123
-      MYSQL_DATABASE: fashop
-      MYSQL_CHARSET: utf8mb4
-      MYSQL_COLLATION: utf8mb4_unicode_ci
+      MYSQL_ROOT_PASSWORD: fashop123        # root 用户密码
+      MYSQL_DATABASE: fashop                # 容器启动时自动创建的数据库名
+      MYSQL_CHARSET: utf8mb4                # 默认字符集，支持中文和 emoji
+      MYSQL_COLLATION: utf8mb4_unicode_ci   # 排序规则，兼容多语言
     ports:
-      - "3306:3306"
+      - "3306:3306"   # 宿主机端口:容器端口，本地代码通过 localhost:3306 访问 MySQL
     volumes:
-      - mysql_data:/var/lib/mysql
-      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - mysql_data:/var/lib/mysql                                        # 数据持久化：MySQL 数据目录挂载到具名卷，删容器不丢数据
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql    # 初始化脚本：容器首次启动时自动执行
     command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    # 启动参数：使用传统密码认证插件（兼容旧版客户端），并强制指定字符集
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pfashop123"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pfashop123"]  # 用 mysqladmin ping 检测服务是否就绪
+      interval: 10s   # 每 10 秒检查一次
+      timeout: 5s     # 单次检查超时时间
+      retries: 5      # 连续失败 5 次后标记为 unhealthy
 
+  # ─────────────────────────────────────────
+  # Redis 缓存服务
+  # ─────────────────────────────────────────
   redis:
-    image: redis:7-alpine
-    container_name: fashop-redis
-    restart: unless-stopped
+    image: redis:7-alpine             # alpine 版镜像体积更小（仅几十 MB）
+    container_name: fashop-redis      # 容器名称
+    restart: unless-stopped           # 同 MySQL，异常自动重启
     ports:
-      - "6379:6379"
+      - "6379:6379"   # 宿主机端口:容器端口，本地代码通过 localhost:6379 访问 Redis
     volumes:
-      - redis_data:/data
+      - redis_data:/data              # 数据持久化：将 Redis 数据目录挂载到具名卷
     command: redis-server --appendonly yes
+    # 启动参数：开启 AOF 持久化，每次写操作都追加到日志文件，重启后数据不丢失
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      test: ["CMD", "redis-cli", "ping"]  # 用 redis-cli ping 检测服务是否就绪
+      interval: 10s   # 每 10 秒检查一次
+      timeout: 5s     # 单次检查超时时间
+      retries: 5      # 连续失败 5 次后标记为 unhealthy
 
+# ─────────────────────────────────────────
+# 具名数据卷声明
+# Docker 负责创建和管理这些存储空间，数据存在宿主机上，容器删除后仍然保留
+# ─────────────────────────────────────────
 volumes:
-  mysql_data:
-  redis_data:
+  mysql_data:   # MySQL 数据卷
+  redis_data:   # Redis 数据卷
