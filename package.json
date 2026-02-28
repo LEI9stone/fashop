@@ -6,7 +6,6 @@
     "dev": "turbo dev",
     "dev:server": "turbo dev --filter=@fashop/server",
     "dev:buyer": "turbo dev --filter=@fashop/buyer",
-    "dev:seller": "turbo dev --filter=@fashop/seller",
     "build": "turbo build",
     "lint": "turbo lint",
     "clean": "turbo clean && rm -rf node_modules"
