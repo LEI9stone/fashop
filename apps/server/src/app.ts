@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
+import { HTTPException } from 'hono/http-exception'
 import { authRoutes } from './routes/auth.js'
 import { productRoutes } from './routes/product.js'
 import { orderRoutes } from './routes/order.js'
@@ -14,11 +15,14 @@ export const app = new Hono()
 
 // 中间件
 app.use('*', logger())
-app.use('/api/*', cors({
-  origin: '*',
-  allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-  allowHeaders: ['Content-Type', 'Authorization'],
-}))
+app.use(
+  '/api/*',
+  cors({
+    origin: '*',
+    allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    allowHeaders: ['Content-Type', 'Authorization'],
+  }),
+)
 
 // 健康检查
 app.get('/', (c) => c.json({ status: 'ok', message: 'FaShop API' }))
@@ -39,6 +43,8 @@ app.notFound((c) => c.json({ code: 404, message: '接口不存在' }, 404))
 
 // 全局错误处理
 app.onError((err, c) => {
-  console.error(err)
+  if (err instanceof HTTPException) {
+    return c.json({ code: err.status, message: err.message }, err.status)
+  }
   return c.json({ code: 500, message: '服务器内部错误' }, 500)
 })

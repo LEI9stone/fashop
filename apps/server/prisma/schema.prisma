@@ -14,6 +14,7 @@ model User {
   phone     String     @unique
   nickname  String     @default("用户")
   avatar    String?
+  password  String?
   oauths    UserOAuth[]
   orders    Order[]
   addresses Address[]
