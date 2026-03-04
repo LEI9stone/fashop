@@ -10,11 +10,12 @@ import { addressRoutes } from './routes/address.js'
 import { fileRoutes } from './routes/file.js'
 import { sellerRoutes } from './routes/seller.js'
 import { paymentRoutes } from './routes/payment.js'
+import { autoRefresh } from './middlewares/auth.js'
 
 export const app = new Hono()
 
 // 中间件
-app.use('*', logger())
+app.use('*', logger()).use('*', autoRefresh)
 app.use(
   '/api/*',
   cors({

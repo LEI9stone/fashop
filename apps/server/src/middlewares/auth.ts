@@ -2,7 +2,7 @@ import { createMiddleware } from 'hono/factory'
 import jwt from 'jsonwebtoken'
 
 export interface JwtPayload {
-  sub: string        // userId 或 sellerId
+  sub: string // userId 或 sellerId
   role: 'user' | 'seller'
   iat?: number
   exp?: number
@@ -55,10 +55,26 @@ export const sellerAuth = createMiddleware(async (c, next) => {
 })
 
 /**
+ * 续签中间件
+ */
+export const autoRefresh = createMiddleware(async (c, next) => {
+  await next()
+  const payload = c.get('jwtPayload')
+  if (!payload) return
+
+  const exp = payload.exp! * 1000
+  const sevenDays = 7 * 24 * 60 * 60 * 1000
+  if (exp - Date.now() < sevenDays) {
+    const newToken = signToken({ sub: payload.sub, role: payload.role })
+    c.header('X-New-Token', newToken)
+  }
+})
+
+/**
  * 生成 JWT Token
  */
 export function signToken(payload: Omit<JwtPayload, 'iat' | 'exp'>): string {
   return jwt.sign(payload, process.env.JWT_SECRET!, {
-    expiresIn: (process.env.JWT_EXPIRES_IN || '7d') as any,
+    expiresIn: (process.env.JWT_EXPIRES_IN || '30d') as any,
   })
 }

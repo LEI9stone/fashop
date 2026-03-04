@@ -11,7 +11,14 @@ sellerRoutes.get('/profile', async (c) => {
   const sellerId = c.get('jwtPayload').sub
   const seller = await prisma.seller.findUnique({
     where: { id: sellerId },
-    select: { id: true, phone: true, shopName: true, logo: true, description: true, createdAt: true },
+    select: {
+      id: true,
+      phone: true,
+      shopName: true,
+      logo: true,
+      description: true,
+      createdAt: true,
+    },
   })
   return c.json({ code: 0, message: 'ok', data: seller })
 })
