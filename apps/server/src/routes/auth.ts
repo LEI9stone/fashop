@@ -122,7 +122,7 @@ authRoutes.post(
     const { phone, password, nickname } = c.req.valid('json')
     const exists = await prisma.user.findUnique({ where: { phone } })
     if (exists) {
-      return c.json({ code: 400, message: '该手机号已注册' }, 400)
+      return c.json({ code: 400, message: '手机号已注册' }, 400)
     }
 
     const hashedPassword = await bcrypt.hash(password, 10)
@@ -148,10 +148,10 @@ authRoutes.post(
     const { phone, password } = c.req.valid('json')
     const user = await prisma.user.findUnique({ where: { phone } })
     if (!user?.password) {
-      return c.json({ code: 400, message: '该账号未通过密码注册' }, 400)
+      return c.json({ code: 400, message: '账号未注册' }, 400)
     }
     if (!user || !(await bcrypt.compare(password, user.password))) {
-      return c.json({ code: 400, message: '手机号或密码错误' }, 400)
+      return c.json({ code: 400, message: '密码错误，请重试' }, 400)
     }
     const token = signToken({ sub: user.id, role: 'user' })
     return c.json({ code: 0, message: 'ok', data: { token, user } })
