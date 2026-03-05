@@ -2,14 +2,15 @@ import { useState, useCallback } from 'react'
 import { View, Text, Input } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { post, setToken } from '../../utils/request'
+import { userLoginSchema, userRegisterConfirmSchema } from '@fashop/schema'
 
 type TabType = 'login' | 'register'
 
 export default function Login() {
   const [activeTab, setActiveTab] = useState<TabType>('login')
-  const [phone, setPhone] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
+  const [form, setForm] = useState({ phone: '', password: '', confirmPassword: '' })
+  const { phone, password, confirmPassword } = form
+  const updateForm = (patch: Partial<typeof form>) => setForm((prev) => ({ ...prev, ...patch }))
   const [loading, setLoading] = useState(false)
 
   const handleLogin = useCallback(async () => {
@@ -24,7 +25,7 @@ export default function Login() {
       Taro.showToast({ title: err?.message || '登录失败', icon: 'none' })
       if (err?.message === '账号未注册') {
         setActiveTab('register')
-        setConfirmPassword('')
+        updateForm({ confirmPassword: '' })
       }
     }
   }, [phone, password])
@@ -40,31 +41,21 @@ export default function Login() {
       Taro.showToast({ title: err?.message || '注册失败', icon: 'none' })
       if (err?.message === '手机号已注册') {
         setActiveTab('login')
-        setPassword('')
-        setConfirmPassword('')
+        updateForm({ password: '', confirmPassword: '' })
       }
     }
   }, [phone, password])
 
   const handleSubmit = useCallback(async () => {
-    if (!phone.trim()) {
-      Taro.showToast({ title: '请输入手机号', icon: 'none' })
-      return
-    }
-    if (!/^1\d{10}$/.test(phone)) {
-      Taro.showToast({ title: '手机号格式不正确', icon: 'none' })
-      return
-    }
-    if (!password) {
-      Taro.showToast({ title: '请输入密码', icon: 'none' })
-      return
-    }
-    if (password.length < 6) {
-      Taro.showToast({ title: '密码至少6位', icon: 'none' })
-      return
-    }
-    if (activeTab === 'register' && password !== confirmPassword) {
-      Taro.showToast({ title: '两次密码不一致', icon: 'none' })
+    const schema = activeTab === 'login' ? userLoginSchema : userRegisterConfirmSchema
+    const data =
+      activeTab === 'login'
+        ? { phone, password }
+        : { phone, password, confirmPassword, nickname: `用户${phone.slice(-4)}` }
+
+    const result = schema.safeParse(data)
+    if (!result.success) {
+      Taro.showToast({ title: result.error.issues[0].message, icon: 'none' })
       return
     }
 
@@ -83,9 +74,7 @@ export default function Login() {
 
   const switchTab = useCallback((tab: TabType) => {
     setActiveTab(tab)
-    setPhone('')
-    setPassword('')
-    setConfirmPassword('')
+    setForm({ phone: '', password: '', confirmPassword: '' })
   }, [])
 
   return (
@@ -141,7 +130,7 @@ export default function Login() {
             placeholder="请输入手机号"
             placeholderClass="text-gray-400"
             value={phone}
-            onInput={(e) => setPhone(e.detail.value)}
+            onInput={(e) => updateForm({ phone: e.detail.value })}
           />
         </View>
 
@@ -155,7 +144,7 @@ export default function Login() {
             placeholder="请输入密码"
             placeholderClass="text-gray-400"
             value={password}
-            onInput={(e) => setPassword(e.detail.value)}
+            onInput={(e) => updateForm({ password: e.detail.value })}
           />
         </View>
 
@@ -170,7 +159,7 @@ export default function Login() {
               placeholder="请确认密码"
               placeholderClass="text-gray-400"
               value={confirmPassword}
-              onInput={(e) => setConfirmPassword(e.detail.value)}
+              onInput={(e) => updateForm({ confirmPassword: e.detail.value })}
             />
           </View>
         )}

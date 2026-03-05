@@ -41,6 +41,7 @@
   "author": "",
   "dependencies": {
     "@babel/runtime": "^7.24.4",
+    "@fashop/schema": "workspace:^",
     "@fashop/types": "workspace:^",
     "@fashop/utils": "workspace:^",
     "@tarojs/components": "4.1.11",

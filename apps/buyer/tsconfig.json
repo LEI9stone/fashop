@@ -17,14 +17,18 @@
     "jsx": "react-jsx",
     "allowJs": true,
     "resolveJsonModule": true,
-    "typeRoots": [
-      "node_modules/@types"
-    ],
+    "typeRoots": ["node_modules/@types"],
     "paths": {
       // TS5090 leading './'
       "@/*": ["./src/*"]
     }
   },
-  "include": ["./src", "./types", "./config", "../../packages/types/src/**/*.d.ts"],
+  "include": [
+    "./src",
+    "./types",
+    "./config",
+    "../../packages/schema/src/**/*.d.ts",
+    "../../packages/types/src/**/*.d.ts"
+  ],
   "compileOnSave": false
 }

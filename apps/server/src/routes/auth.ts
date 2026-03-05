@@ -4,6 +4,7 @@ import { z } from 'zod'
 import bcrypt from 'bcryptjs'
 import { prisma } from '../lib/prisma.js'
 import { signToken } from '../middlewares/auth.js'
+import { userRegisterSchema, userLoginSchema } from '@fashop/schema'
 
 export const authRoutes = new Hono()
 
@@ -108,52 +109,31 @@ authRoutes.post(
 )
 
 // 用户注册(不区分买家和商家)
-authRoutes.post(
-  '/user/register',
-  validate(
-    'json',
-    z.object({
-      phone: z.string().regex(/^1[3-9]\d{9}$/, '手机号格式错误'),
-      password: z.string().min(6),
-      nickname: z.string().min(1),
-    }),
-  ),
-  async (c) => {
-    const { phone, password, nickname } = c.req.valid('json')
-    const exists = await prisma.user.findUnique({ where: { phone } })
-    if (exists) {
-      return c.json({ code: 400, message: '手机号已注册' }, 400)
-    }
+authRoutes.post('/user/register', validate('json', userRegisterSchema), async (c) => {
+  const { phone, password, nickname } = c.req.valid('json')
+  const exists = await prisma.user.findUnique({ where: { phone } })
+  if (exists) {
+    return c.json({ code: 400, message: '手机号已注册' }, 400)
+  }
 
-    const hashedPassword = await bcrypt.hash(password, 10)
-    const user = await prisma.user.create({
-      data: { phone, password: hashedPassword, nickname },
-    })
-    const token = signToken({ sub: user.id, role: 'user' })
-    return c.json({ code: 0, message: '注册成功', data: { token, user } }, 201)
-  },
-)
+  const hashedPassword = await bcrypt.hash(password, 10)
+  const user = await prisma.user.create({
+    data: { phone, password: hashedPassword, nickname },
+  })
+  const token = signToken({ sub: user.id, role: 'user' })
+  return c.json({ code: 0, message: '注册成功', data: { token, user } }, 201)
+})
 
 // 用户登录
-authRoutes.post(
-  '/user/login',
-  validate(
-    'json',
-    z.object({
-      phone: z.string().regex(/^1[3-9]\d{9}$/, '手机号格式错误'),
-      password: z.string().min(6),
-    }),
-  ),
-  async (c) => {
-    const { phone, password } = c.req.valid('json')
-    const user = await prisma.user.findUnique({ where: { phone } })
-    if (!user?.password) {
-      return c.json({ code: 400, message: '账号未注册' }, 400)
-    }
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      return c.json({ code: 400, message: '密码错误，请重试' }, 400)
-    }
-    const token = signToken({ sub: user.id, role: 'user' })
-    return c.json({ code: 0, message: 'ok', data: { token, user } })
-  },
-)
+authRoutes.post('/user/login', validate('json', userLoginSchema), async (c) => {
+  const { phone, password } = c.req.valid('json')
+  const user = await prisma.user.findUnique({ where: { phone } })
+  if (!user?.password) {
+    return c.json({ code: 400, message: '账号未注册' }, 400)
+  }
+  if (!user || !(await bcrypt.compare(password, user.password))) {
+    return c.json({ code: 400, message: '密码错误，请重试' }, 400)
+  }
+  const token = signToken({ sub: user.id, role: 'user' })
+  return c.json({ code: 0, message: 'ok', data: { token, user } })
+})

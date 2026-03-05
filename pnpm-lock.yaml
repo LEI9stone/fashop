@@ -20,6 +20,9 @@ importers:
       '@babel/runtime':
         specifier: ^7.24.4
         version: 7.28.6
+      '@fashop/schema':
+        specifier: workspace:^
+        version: link:../../packages/schema
       '@fashop/types':
         specifier: workspace:^
         version: link:../../packages/types
@@ -171,6 +174,9 @@ importers:
 
   apps/server:
     dependencies:
+      '@fashop/schema':
+        specifier: workspace:*
+        version: link:../../packages/schema
       '@fashop/types':
         specifier: workspace:*
         version: link:../../packages/types
@@ -181,8 +187,8 @@ importers:
         specifier: ^1.13.7
         version: 1.19.9(hono@4.12.3)
       '@hono/zod-validator':
-        specifier: ^0.4.3
-        version: 0.4.3(hono@4.12.3)(zod@3.25.76)
+        specifier: ^0.7.6
+        version: 0.7.6(hono@4.12.3)(zod@4.3.6)
       '@prisma/client':
         specifier: ^6.4.1
         version: 6.19.2(prisma@6.19.2(typescript@5.9.3))(typescript@5.9.3)
@@ -202,8 +208,8 @@ importers:
         specifier: ^9.0.2
         version: 9.0.3
       zod:
-        specifier: ^3.24.1
-        version: 3.25.76
+        specifier: ^4.3.6
+        version: 4.3.6
     devDependencies:
       '@types/bcryptjs':
         specifier: ^3.0.0
@@ -220,6 +226,16 @@ importers:
       tsx:
         specifier: ^4.19.2
         version: 4.21.0
+      typescript:
+        specifier: ^5.7.3
+        version: 5.9.3
+
+  packages/schema:
+    dependencies:
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
+    devDependencies:
       typescript:
         specifier: ^5.7.3
         version: 5.9.3
@@ -1726,11 +1742,11 @@ packages:
     peerDependencies:
       hono: ^4
 
-  '@hono/zod-validator@0.4.3':
-    resolution: {integrity: sha512-xIgMYXDyJ4Hj6ekm9T9Y27s080Nl9NXHcJkOvkXPhubOLj8hZkOL8pDnnXfvCf5xEE8Q4oMFenQUZZREUY2gqQ==}
+  '@hono/zod-validator@0.7.6':
+    resolution: {integrity: sha512-Io1B6d011Gj1KknV4rXYz4le5+5EubcWEU/speUjuw9XMMIaP3n78yXLhjd2A3PXaXaUwEAluOiAyLqhBEJgsw==}
     peerDependencies:
       hono: '>=3.9.0'
-      zod: ^3.19.1
+      zod: ^3.25.0 || ^4.0.0
 
   '@humanwhocodes/config-array@0.11.14':
     resolution: {integrity: sha512-3T8LkOmg45BV5FICb15QQMsyUSWrQ8AygVfC7ZG32zOalnqrilm018ZVCw0eapXux8FtA33q8PSRSstjee3jSg==}
@@ -7170,8 +7186,8 @@ packages:
   yup@1.7.1:
     resolution: {integrity: sha512-GKHFX2nXul2/4Dtfxhozv701jLQHdf6J34YDh2cEkpqoo8le5Mg6/LrdseVLrFarmFygZTlfIhHx/QKfb/QWXw==}
 
-  zod@3.25.76:
-    resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
+  zod@4.3.6:
+    resolution: {integrity: sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg==}
 
 snapshots:
 
@@ -8711,10 +8727,10 @@ snapshots:
     dependencies:
       hono: 4.12.3
 
-  '@hono/zod-validator@0.4.3(hono@4.12.3)(zod@3.25.76)':
+  '@hono/zod-validator@0.7.6(hono@4.12.3)(zod@4.3.6)':
     dependencies:
       hono: 4.12.3
-      zod: 3.25.76
+      zod: 4.3.6
 
   '@humanwhocodes/config-array@0.11.14':
     dependencies:
@@ -15151,4 +15167,4 @@ snapshots:
       toposort: 2.0.2
       type-fest: 2.19.0
 
-  zod@3.25.76: {}
+  zod@4.3.6: {}
