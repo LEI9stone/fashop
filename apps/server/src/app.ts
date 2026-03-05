@@ -10,6 +10,7 @@ import { addressRoutes } from './routes/address.js'
 import { fileRoutes } from './routes/file.js'
 import { sellerRoutes } from './routes/seller.js'
 import { paymentRoutes } from './routes/payment.js'
+import { userRoutes } from './routes/user.js'
 import { autoRefresh } from './middlewares/auth.js'
 
 export const app = new Hono()
@@ -38,6 +39,7 @@ api.route('/addresses', addressRoutes)
 api.route('/files', fileRoutes)
 api.route('/seller', sellerRoutes)
 api.route('/payment', paymentRoutes)
+api.route('/user', userRoutes)
 
 // 404 处理
 app.notFound((c) => c.json({ code: 404, message: '接口不存在' }, 404))

@@ -1,17 +1,28 @@
 import { useState, useCallback } from 'react'
 import { View, Text, Input } from '@tarojs/components'
-import Taro from '@tarojs/taro'
+import Taro, { useRouter } from '@tarojs/taro'
 import { post, setToken } from '../../utils/request'
 import { userLoginSchema, userRegisterConfirmSchema } from '@fashop/schema'
 
 type TabType = 'login' | 'register'
 
 export default function Login() {
+  const router = useRouter()
+  const from = router.params.from
+
   const [activeTab, setActiveTab] = useState<TabType>('login')
   const [form, setForm] = useState({ phone: '', password: '', confirmPassword: '' })
   const { phone, password, confirmPassword } = form
   const updateForm = (patch: Partial<typeof form>) => setForm((prev) => ({ ...prev, ...patch }))
   const [loading, setLoading] = useState(false)
+
+  const navigateAfterAuth = useCallback(() => {
+    if (from) {
+      Taro.navigateBack()
+    } else {
+      Taro.switchTab({ url: '/pages/index/index' })
+    }
+  }, [from])
 
   const handleLogin = useCallback(async () => {
     try {
@@ -19,16 +30,15 @@ export default function Login() {
       const data = await post<Auth.LoginResult>('/api/auth/user/login', params)
       setToken(data.token)
       Taro.showToast({ title: '登录成功', icon: 'success' })
-      setTimeout(() => Taro.switchTab({ url: '/pages/index/index' }), 500)
+      setTimeout(() => navigateAfterAuth(), 500)
     } catch (err: any) {
-      // 覆盖 request 工具自动弹出的 toast
       Taro.showToast({ title: err?.message || '登录失败', icon: 'none' })
       if (err?.message === '账号未注册') {
         setActiveTab('register')
         updateForm({ confirmPassword: '' })
       }
     }
-  }, [phone, password])
+  }, [phone, password, navigateAfterAuth])
 
   const handleRegister = useCallback(async () => {
     try {
@@ -36,7 +46,7 @@ export default function Login() {
       const data = await post<Auth.LoginResult>('/api/auth/user/register', params)
       setToken(data.token)
       Taro.showToast({ title: '注册成功', icon: 'success' })
-      setTimeout(() => Taro.switchTab({ url: '/pages/index/index' }), 500)
+      setTimeout(() => navigateAfterAuth(), 500)
     } catch (err: any) {
       Taro.showToast({ title: err?.message || '注册失败', icon: 'none' })
       if (err?.message === '手机号已注册') {
@@ -44,7 +54,7 @@ export default function Login() {
         updateForm({ password: '', confirmPassword: '' })
       }
     }
-  }, [phone, password])
+  }, [phone, password, navigateAfterAuth])
 
   const handleSubmit = useCallback(async () => {
     const schema = activeTab === 'login' ? userLoginSchema : userRegisterConfirmSchema

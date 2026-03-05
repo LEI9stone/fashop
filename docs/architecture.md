@@ -6,22 +6,22 @@
 
 ## 一、项目定位
 
-| 项目 | 说明 |
-|------|------|
-| 目标用户 | 个体户商家（线上销售） |
+| 项目     | 说明                                             |
+| -------- | ------------------------------------------------ |
+| 目标用户 | 个体户商家（线上销售）                           |
 | 核心场景 | 商家发布商品 → 买家浏览下单 → 支付 → 发货 → 收货 |
-| 设备特点 | 移动优先，商家和买家均以手机为主 |
-| 开发模式 | 单人全栈开发（前端主导 + AI 辅助后端） |
+| 设备特点 | 移动优先，商家和买家均以手机为主                 |
+| 开发模式 | 单人全栈开发（前端主导 + AI 辅助后端）           |
 
 ---
 
 ## 二、端划分
 
-| 端 | 使用者 | 形态 | 入口 |
-|----|--------|------|------|
-| 买家端 | 消费者 | 微信小程序 + 抖音小程序 + H5 | 默认入口 |
-| 商家端 | 个体户商家 | 同一个小程序内，身份切换后进入管理界面 | 登录后识别商家角色 |
-| 后端服务 | — | Node.js REST API | Hono + Prisma |
+| 端       | 使用者     | 形态                                   | 入口               |
+| -------- | ---------- | -------------------------------------- | ------------------ |
+| 买家端   | 消费者     | 微信小程序 + 抖音小程序 + H5           | 默认入口           |
+| 商家端   | 个体户商家 | 同一个小程序内，身份切换后进入管理界面 | 登录后识别商家角色 |
+| 后端服务 | —          | Node.js REST API                       | Hono + Prisma      |
 
 > **架构决策**：商家管理功能内嵌在买家端小程序（`apps/buyer`）中，通过登录角色判断渲染不同界面。
 > 不再单独维护 `apps/seller`，降低开发和维护成本。
@@ -35,7 +35,6 @@
 
 买家端 + 商家端（apps/buyer）
   框架：      Taro 4.x + React 18
-  状态管理：   Zustand
   UI 组件：   NutUI-React
   编译目标：   微信小程序 / 抖音小程序 / H5
   角色切换：   登录后根据 role（user / seller）渲染不同页面
@@ -114,7 +113,7 @@
 
 ```typescript
 interface JwtPayload {
-  sub: string           // 用户 ID 或 商家 ID
+  sub: string // 用户 ID 或 商家 ID
   role: 'user' | 'seller'
 }
 ```
@@ -366,7 +365,7 @@ enum OrderStatus   { PENDING_PAY PENDING_SHIP SHIPPED DONE CANCELLED REFUNDING R
 ```typescript
 // 各端获取 code，后端统一换 openid → 返回 JWT（含 role）
 const { code } = await Taro.login()
-const platform = process.env.TARO_ENV  // 'weapp' | 'tt'
+const platform = process.env.TARO_ENV // 'weapp' | 'tt'
 const { token, role } = await api.post('/auth/login', { code, platform })
 
 // 根据角色跳转
@@ -415,12 +414,12 @@ pnpm --filter @fashop/buyer dev:h5      # H5（本地调试用）
 
 **本地端口规划：**
 
-| 服务 | 端口 |
-|------|------|
-| 后端 API | 3000 |
+| 服务                    | 端口  |
+| ----------------------- | ----- |
+| 后端 API                | 3000  |
 | 买家端 H5（含商家页面） | 10086 |
-| MySQL | 3306 |
-| Redis | 6379 |
+| MySQL                   | 3306  |
+| Redis                   | 6379  |
 
 ---
 
@@ -473,14 +472,13 @@ pnpm --filter @fashop/buyer dev:h5      # H5（本地调试用）
 
 ## 十二、关键技术决策记录
 
-| 决策点 | 选择 | 理由 |
-|--------|------|------|
-| 多端框架 | Taro | React 技术栈，一套代码编译多端 |
-| 商家端集成方式 | 内嵌买家端小程序 | 减少维护成本，商家无需安装额外 App |
-| 后端框架 | Hono | 轻量、TypeScript 友好，对前端工程师友好 |
-| ORM | Prisma | 无需手写 SQL，TypeScript 类型自动生成 |
-| 状态管理 | Zustand | 轻量无样板代码，Taro 兼容好 |
-| UI 组件库 | NutUI-React | 京东出品，专为 Taro 设计 |
-| Monorepo 工具 | pnpm + Turborepo | 依赖共享 + 并行构建 |
-| 图片存储 | 阿里云 OSS 直传 | 不走服务器带宽，节省成本 |
-| 本地数据库 | Docker | 环境隔离，不污染本地，换电脑秒恢复 |
+| 决策点         | 选择             | 理由                                    |
+| -------------- | ---------------- | --------------------------------------- |
+| 多端框架       | Taro             | React 技术栈，一套代码编译多端          |
+| 商家端集成方式 | 内嵌买家端小程序 | 减少维护成本，商家无需安装额外 App      |
+| 后端框架       | Hono             | 轻量、TypeScript 友好，对前端工程师友好 |
+| ORM            | Prisma           | 无需手写 SQL，TypeScript 类型自动生成   |
+| UI 组件库      | NutUI-React      | 京东出品，专为 Taro 设计                |
+| Monorepo 工具  | pnpm + Turborepo | 依赖共享 + 并行构建                     |
+| 图片存储       | 阿里云 OSS 直传  | 不走服务器带宽，节省成本                |
+| 本地数据库     | Docker           | 环境隔离，不污染本地，换电脑秒恢复      |
